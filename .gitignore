@@ -136,4 +136,5 @@ dist
 
 # Vite logs files
 vite.config.js.timestamp-*
+.DS_Store
 vite.config.ts.timestamp-*
