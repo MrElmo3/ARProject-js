@@ -4,7 +4,13 @@
 	"main": "index.js",
 	"scripts": {
 		"dev": "vite",
+		"build": "vite build",
+		"start": "serve dist -s -l 8080",
+		"preview": "vite preview",
 		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"engines": {
+		"node": ">=20.0.0"
 	},
 	"author": "",
 	"license": "ISC",
@@ -12,7 +18,8 @@
 	"dependencies": {
 		"aframe": "^1.7.1",
 		"aframe-extras": "^7.5.4",
-		"mind-ar": "^1.2.5"
+		"mind-ar": "^1.2.5",
+		"serve": "^14.2.1"
 	},
 	"devDependencies": {
 		"vite": "^5.0.0"
