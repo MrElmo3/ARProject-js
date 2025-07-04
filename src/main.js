@@ -356,7 +356,7 @@ function createAssets(uniqueElements) {
 	
 	uniqueElements.forEach(element => {
 		const assetItem = document.createElement('a-asset-item');
-		assetItem.setAttribute('id', element);
+		assetItem.setAttribute('id',`elemento-${element}`);
 		assetItem.setAttribute('src', `Assets/Models/${element}/${element}.json`);
 		assets.appendChild(assetItem);
 	});
@@ -396,7 +396,7 @@ function createSingleEntity(element, targetIndex) {
 	modelEntity.setAttribute('rotation', {x: 0, y: 0, z: 0});
 	modelEntity.setAttribute('position', {x: 0, y: getPositionY(element), z: 0});
 	modelEntity.setAttribute('scale', getScale(element));
-	modelEntity.setAttribute('src', `#${element}`);
+	modelEntity.setAttribute('src', `#elemento-${element}`);
 	
 	targetEntity.appendChild(modelEntity);
 	return targetEntity;
