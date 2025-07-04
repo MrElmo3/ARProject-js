@@ -1,10 +1,20 @@
 import 'aframe';
 import 'mind-ar/dist/mindar-image-aframe.prod.js';
 
+
 const CHEMICAL_ELEMENTS = {
-	'Agua': ['H', 'O'],
-	'Metano': ['C', 'H'],
-	'Dióxido de Carbono': ['C', 'O'],
+	'Agua': [
+		{element: 'H', targetIndex: 1},
+		{element: 'O', targetIndex: 2}
+	],
+	'Metano': [
+		{element: 'C', targetIndex: 0},
+		{element: 'H', targetIndex: 1}, 
+	],
+	'Dióxido de Carbono': [
+		{element: 'C', targetIndex: 0}, 
+		{element: 'O', targetIndex: 2}, 
+	],
 };
 
 let gameState = {
@@ -99,45 +109,17 @@ function getChemicalFormula(elementName) {
 	return formulas[elementName] || '';
 }
 
-/**
- * Cambia el elemento químico y reinicia el juego
- * @param {string} newElement - Nuevo elemento químico
- */
-function changeElement(newElement) {
-	if (!gameState.gameActive) {
-		selectElement(newElement);
-		
-		// Limpiar la escena actual
-		const existingScene = document.querySelector('a-scene');
-		if (existingScene) {
-			existingScene.remove();
-		}
-		
-		// Actualizar UI
-		updateElementUI();
-		
-		// Crear nueva escena y reiniciar
-		createSceneForCurrentElement();
-		startGame();
-	}
-}
 
-/**
- * Actualiza la UI con el elemento actual
- */
 function updateElementUI() {
 	document.getElementById('element-display').textContent = gameState.element;
 	document.getElementById('score-display').textContent = gameState.totalScore;
 	document.getElementById('game-status').innerHTML = '';
 	
-	// Actualizar el contador de progreso
 	const progressElement = document.getElementById('progress');
 	progressElement.innerHTML = `Visibles: <span id="found-count">0</span>/${gameState.requiredTargets}`;
 }
 
-/**
- * Crea la escena AR para el elemento químico actual
- */
+
 function createSceneForCurrentElement() {
 	const components = CHEMICAL_ELEMENTS[gameState.element];
 	if (components) {
@@ -158,7 +140,6 @@ function startGame() {
 	gameState.targetsCurrentlyVisible.clear(); 
 	gameState.gameEnded = false;
 	
-	// Actualizar el contador de progreso
 	document.getElementById('found-count').textContent = gameState.targetsCurrentlyVisible.size;
 	
 	updateUI();
@@ -172,7 +153,7 @@ function startGame() {
 		updateUI();
 		
 		if (gameState.timeRemaining <= 0) {
-			endCurrentElement(false); // Tiempo agotado
+			endCurrentElement(false);
 		}
 	}, 1000);
 }
@@ -202,7 +183,6 @@ function endCurrentElement(won) {
 	gameState.gameEnded = true;
 	clearInterval(gameState.timer);
 	
-	// Actualizar score si ganó
 	if (won) {
 		gameState.totalScore++;
 	}
@@ -214,40 +194,29 @@ function endCurrentElement(won) {
 		statusElement.innerHTML = '<div style="color: #ff4444; font-weight: bold;">TIEMPO AGOTADO ⏰</div>';
 	}
 	
-	// Actualizar score display
 	document.getElementById('score-display').textContent = gameState.totalScore;
 	
-	// Avanzar al siguiente elemento después de 2 segundos
 	setTimeout(() => {
 		gameState.currentElementIndex++;
 		
 		if (gameState.currentElementIndex >= gameState.totalElements) {
-			// Terminar juego completo
 			showFinalScore();
 		} else {
-			// Continuar con el siguiente elemento
 			proceedToNextElement();
 		}
 	}, 2000);
 }
 
-/**
- * Procede al siguiente elemento
- */
 function proceedToNextElement() {
-	// Limpiar la escena actual
 	const existingScene = document.querySelector('a-scene');
 	if (existingScene) {
 		existingScene.remove();
 	}
 	
-	// Iniciar el siguiente elemento
 	startCurrentElement();
 }
 
-/**
- * Muestra el score final
- */
+
 function showFinalScore() {
 	const statusElement = document.getElementById('game-status');
 	const percentage = Math.round((gameState.totalScore / gameState.totalElements) * 100);
@@ -277,7 +246,6 @@ function showFinalScore() {
 		</div>
 	`;
 	
-	// Agregar botón de reinicio
 	setTimeout(() => {
 		statusElement.innerHTML += `
 			<button id="restart-btn" style="
@@ -296,28 +264,15 @@ function showFinalScore() {
 	}, 2000);
 }
 
-/**
- * Reinicia todo el juego desde el principio
- */
 function restartCompleteGame() {
-	// Limpiar la escena actual
 	const existingScene = document.querySelector('a-scene');
 	if (existingScene) {
 		existingScene.remove();
 	}
 	
-	// Reinicializar el estado del juego
 	initializeGame();
 	updateElementUI();
 	startCurrentElement();
-}
-
-/**
- * Reinicia solo el elemento actual (función legacy)
- */
-function restartGame() {
-	document.getElementById('game-status').innerHTML = '';
-	startGame();
 }
 
 /**
@@ -330,9 +285,8 @@ function onTargetFound(targetIndex) {
 	gameState.targetsCurrentlyVisible.add(targetIndex);
 	updateUI();
 	
-	// Verificar si se han encontrado todos los targets requeridos
 	if (gameState.targetsCurrentlyVisible.size >= gameState.requiredTargets) {
-		endCurrentElement(true); // Elemento completado exitosamente
+		endCurrentElement(true);
 	}
 }
 
@@ -349,15 +303,17 @@ function onTargetLost(targetIndex) {
 
 /**
  * Función principal para crear una escena AR escalable
- * @param {Array} elements - Array de elementos (ej: ['H', 'H', 'O'])
+ * @param {Array} elementData - Array de objetos con element y targetIndex
  */
-function createSceneFor(elements) {
-	const uniqueElements = [...new Set(elements)]; 
-	const maxTrack = elements.length; 
+function createSceneFor(elementData) {
+	const uniqueElements = [...new Set(elementData.map(item => item.element))];
+	
+	const maxTargetIndex = Math.max(...elementData.map(item => item.targetIndex));
+	const maxTrack = maxTargetIndex + 1;
 	
 	const scene = createScene(maxTrack);
 	const assets = createAssets(uniqueElements);
-	const entities = createEntities(elements, uniqueElements);
+	const entities = createEntities(elementData);
 	
 	scene.appendChild(assets);
 	entities.forEach((entity, index) => {
@@ -412,15 +368,14 @@ function createAssets(uniqueElements) {
 
 /**
  * Crea todos los entities para cada elemento del array
- * @param {Array} elements - Array completo de elementos
- * @param {Array} uniqueElements - Array de elementos únicos
+ * @param {Array} elementData - Array de objetos con element y targetIndex
  * @returns {Array} Array de elementos a-entity configurados
  */
-function createEntities(elements, uniqueElements) {
+function createEntities(elementData) {
 	const entities = [];
 	
-	elements.forEach((element, index) => {
-		const entity = createSingleEntity(element, index);
+	elementData.forEach((item, index) => {
+		const entity = createSingleEntity(item.element, item.targetIndex);
 		entities.push(entity);
 	});
 	
@@ -430,7 +385,7 @@ function createEntities(elements, uniqueElements) {
 /**
  * Crea un solo entity con su modelo
  * @param {string} element - Nombre del elemento
- * @param {number} targetIndex - Índice del target
+ * @param {number} targetIndex - Índice del target en el .mind
  * @returns {HTMLElement} Elemento a-entity configurado
  */
 function createSingleEntity(element, targetIndex) {
