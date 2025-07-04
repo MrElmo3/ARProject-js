@@ -10,14 +10,14 @@
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"engines": {
-		"node": ">=20.0.0"
+		"node": "18.x",
+		"npm": ">=8.0.0"
 	},
 	"author": "",
 	"license": "ISC",
 	"description": "",
 	"dependencies": {
 		"aframe": "^1.7.1",
-		"aframe-extras": "^7.5.4",
 		"mind-ar": "^1.2.5",
 		"serve": "^14.2.1"
 	},
