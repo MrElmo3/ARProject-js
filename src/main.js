@@ -317,8 +317,6 @@ function createSceneFor(elementData) {
 	
 	scene.appendChild(assets);
 	entities.forEach((entity, index) => {
-		entity.addEventListener('targetFound', () => onTargetFound(index));
-		entity.addEventListener('targetLost', () => onTargetLost(index));
 		scene.appendChild(entity);
 	});
 	scene.appendChild(createCamera());
@@ -376,6 +374,8 @@ function createEntities(elementData) {
 	
 	elementData.forEach((item, index) => {
 		const entity = createSingleEntity(item.element, item.targetIndex);
+		entity.addEventListener('targetFound', () => onTargetFound(item.targetIndex));
+		entity.addEventListener('targetLost', () => onTargetLost(item.targetIndex));
 		entities.push(entity);
 	});
 	
