@@ -1,6 +1,7 @@
 import 'aframe';
 import 'mind-ar/dist/mindar-image-aframe.prod.js';
 
+const TIME_LIMIT = 35;
 
 const CHEMICAL_ELEMENTS = {
 	'Agua': [
@@ -18,7 +19,7 @@ const CHEMICAL_ELEMENTS = {
 };
 
 let gameState = {
-	timeRemaining: 30,
+	timeRemaining: TIME_LIMIT,
 	element: 'Agua',
 	targetsCurrentlyVisible: new Set(), 
 	gameActive: false,
@@ -53,17 +54,6 @@ function selectCurrentElement() {
 	}
 }
 
-/**
- * Selecciona un elemento específico
- * @param {string} elementName - Nombre del elemento químico
- */
-function selectElement(elementName) {
-	if (CHEMICAL_ELEMENTS[elementName]) {
-		gameState.element = elementName;
-		gameState.requiredTargets = CHEMICAL_ELEMENTS[elementName].length;
-	}
-}
-
 function createGameUI() {
 	const gameUI = document.createElement('div');
 	gameUI.id = 'game-ui';
@@ -82,7 +72,7 @@ function createGameUI() {
 	`;
 	
 	gameUI.innerHTML = `
-		<div id="timer">Tiempo: <span id="time-display">30</span>s</div>
+		<div id="timer">Tiempo: <span id="time-display">${TIME_LIMIT}</span>s</div>
 		<div id="element">Elemento: <span id="element-display">${gameState.element}</span></div>
 		<div id="progress">Visibles: <span id="found-count">0</span>/${gameState.requiredTargets}</div>
 		<div id="score">Score: <span id="score-display">${gameState.totalScore}</span>/${gameState.totalElements}</div>
@@ -91,22 +81,6 @@ function createGameUI() {
 	`;
 	
 	document.body.appendChild(gameUI);
-}
-
-/**
- * Obtiene la fórmula química en formato legible
- * @param {string} elementName - Nombre del elemento
- * @returns {string} Fórmula química
- */
-function getChemicalFormula(elementName) {
-	const formulas = {
-		'Agua': 'H₂O',
-		'Metano': 'CH₄',
-		'Dióxido de Carbono': 'CO₂',
-		'Amoníaco': 'NH₃',
-		'Metanol': 'CH₃OH'
-	};
-	return formulas[elementName] || '';
 }
 
 
@@ -136,7 +110,7 @@ function startCurrentElement() {
 
 function startGame() {
 	gameState.gameActive = true;
-	gameState.timeRemaining = 30;
+	gameState.timeRemaining = TIME_LIMIT;
 	gameState.targetsCurrentlyVisible.clear(); 
 	gameState.gameEnded = false;
 	
@@ -210,6 +184,9 @@ function endCurrentElement(won) {
 function proceedToNextElement() {
 	const existingScene = document.querySelector('a-scene');
 	if (existingScene) {
+		const overlayElements = document.querySelectorAll('.mindar-ui-overlay, .mindar-ui-scanning');
+		overlayElements.forEach(element => element.remove());
+
 		existingScene.remove();
 	}
 	
@@ -316,7 +293,7 @@ function createSceneFor(elementData) {
 	const entities = createEntities(elementData);
 	
 	scene.appendChild(assets);
-	entities.forEach((entity, index) => {
+	entities.forEach((entity) => {
 		scene.appendChild(entity);
 	});
 	scene.appendChild(createCamera());
@@ -372,7 +349,7 @@ function createAssets(uniqueElements) {
 function createEntities(elementData) {
 	const entities = [];
 	
-	elementData.forEach((item, index) => {
+	elementData.forEach((item) => {
 		const entity = createSingleEntity(item.element, item.targetIndex);
 		entity.addEventListener('targetFound', () => onTargetFound(item.targetIndex));
 		entity.addEventListener('targetLost', () => onTargetLost(item.targetIndex));
